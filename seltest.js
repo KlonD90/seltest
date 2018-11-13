@@ -5,6 +5,7 @@ const program = require('commander')
 const mkdirp = require('mkdirp');
 const assert = require('assert')
 const path = require('path');
+const rimraf = require('rimraf')
 
 program.version('0.0.0')
   .option('-s, --server <s>', 'Selenium server url')
@@ -77,15 +78,35 @@ selianize(file).then(tests => { // code
     driver.quit()
   })
 ` + tests.globalConfig + '\n' + tests.tests.map(t => t.code).join('\n') + '\n' + tests.suites.map(x => x.code).join('\n')
-  const fileName = __dirname + '/seltest.test.js'
+
+  const projectName = `side-suite-${file.name}`
+  rimraf.sync(projectName)
+  fs.mkdirSync(projectName)
+  fs.writeFileSync(
+    path.join(projectName, 'package.json'),
+    JSON.stringify({
+      name: file.name,
+      version: '0.0.0',
+      jest: {
+        modulePaths: [path.join(__dirname, '/node_modules')],
+        setupTestFrameworkScriptFile: require.resolve(
+          'jest-environment-selenium/dist/setup.js'
+        ),
+        testEnvironment: 'node',
+      },
+      dependencies: {},
+    })
+  )
+  const fileName = projectName + '/seltest.test.js'
   fs.writeFileSync(fileName, code)
-  console.log('dirname', __dirname)
   try {
-    cp.execSync(path.resolve(path.dirname(require.resolve('jest')), '../bin') + '/jest.js --config='+__dirname+'/jest.config.js seltest.test.js')
+    const opts = {
+      cwd: process.cwd() + '/' + projectName
+    }
+    cp.execSync(path.resolve(path.dirname(require.resolve('jest')), '../bin') + '/jest.js --runTestsByPath seltest.test.js', opts)
   } catch(e) {
     console.error(e)
     // do nothing
   }
-  fs.unlinkSync(fileName)
 });
 

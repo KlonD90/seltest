@@ -1,6 +1,6 @@
 {
   "name": "seltest",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "",
   "main": "t.js",
   "directories": {
@@ -11,6 +11,7 @@
     "jest": "^23.6.0",
     "jest-environment-selenium": "^2.0.0",
     "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.2",
     "selenium-webdriver": "^3.6.0",
     "selianize": "^3.4.2"
   },
